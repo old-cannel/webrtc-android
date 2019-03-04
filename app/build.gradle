@@ -2,9 +2,13 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 28
+    compileOptions {
+        targetCompatibility 1.8
+        sourceCompatibility 1.8
+    }
     defaultConfig {
         applicationId "com.example.webrtc_android"
-        minSdkVersion 15
+        minSdkVersion 16
         targetSdkVersion 28
         versionCode 1
         versionName "1.0"
@@ -25,4 +29,5 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    implementation 'com.neovisionaries:nv-websocket-client:2.2'
 }
