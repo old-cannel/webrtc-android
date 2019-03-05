@@ -2,6 +2,8 @@ package com.example.webrtc_android.webrtc;
 
 import android.util.Log;
 
+import com.example.webrtc_android.websocket.WebSocketUtil;
+
 import org.webrtc.DataChannel;
 import org.webrtc.IceCandidate;
 import org.webrtc.MediaStream;
@@ -47,6 +49,7 @@ public class PeerConnectionAdapter implements PeerConnection.Observer {
     @Override
     public void onIceCandidate(IceCandidate iceCandidate) {
         log("onIceCandidate " + iceCandidate);
+//        WebSocketUtil.getInstance().sendSdpMsg(toUserName,event.candidate);
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.example.webrtc_android.websocket;
 
 import android.util.Log;
 
+import com.example.webrtc_android.webrtc.PeerConnectUtil;
 import com.neovisionaries.ws.client.WebSocket;
 import com.neovisionaries.ws.client.WebSocketAdapter;
 import com.neovisionaries.ws.client.WebSocketFactory;
@@ -12,7 +13,22 @@ import java.io.IOException;
  * websockte 工具类
  */
 public class WebSocketUtil {
+    private WebSocketUtil() {
+
+    }
+
+    private static String URL = "ws://10.110.6.130:2019/chat/websocket";
+    private static WebSocketUtil webSocketUtil;
     private WebSocket webSocket;
+    private String toUserName;
+
+    public String getToUserName() {
+        return toUserName;
+    }
+
+    public void setToUserName(String toUserName) {
+        this.toUserName = toUserName;
+    }
 
     public WebSocket getWebSocket() {
         return webSocket;
@@ -22,9 +38,11 @@ public class WebSocketUtil {
         this.webSocket = webSocket;
     }
 
-    public static WebSocketUtil getInstance(String url) {
-        WebSocketUtil webSocketUtil = new WebSocketUtil();
-        webSocketUtil.setWebSocket(webSocketUtil.connect(url));
+    public static WebSocketUtil getInstance() {
+        if (webSocketUtil == null) {
+            webSocketUtil = new WebSocketUtil();
+            webSocketUtil.setWebSocket(webSocketUtil.connect(URL));
+        }
         return webSocketUtil;
     }
 
@@ -46,15 +64,15 @@ public class WebSocketUtil {
         getWebSocket().sendText("{'username':'" + username + "','message': '" + msg + "'}");
     }
 
-    public void sendSdpMsg(WebSocket webSocket, String username, String sdpMsg) {
-        getWebSocket().sendText("{'username':'" + username + "','sdpMsg':true,'sdpMessage':' " + sdpMsg + "'}");
+    public void sendSdpMsg( String username, String sdpMsg) {
+        getWebSocket().sendText("{\"username\":\"" + username + "\",\"sdpMsg\":true,\"sdpMessage\":" + sdpMsg + "}");
     }
 
-    public void applySdp(WebSocket webSocket, String username, String type) {
-        getWebSocket().sendText("{'username':'" + username + "','sdpMsg':true,'sdpMessage': {'type':' " + type + "'}}");
+    public void applySdp( String username, String type) {
+        getWebSocket().sendText("{'username':'" + username + "','sdpMsg':true,'sdpMessage': {'type':'" + type + "'}}");
     }
 
-    public void disconnect(WebSocket webSocket) {
+    public void disconnect() {
         getWebSocket().disconnect();
     }
 
@@ -63,4 +81,24 @@ public class WebSocketUtil {
     }
 
 
+    public void dealSdp(SdpMessage sdpMsg) {
+        //这个里面处理视频聊天
+
+        if ("call".equals(sdpMsg.getType())) {
+
+        } /*else if (sdpMsg.type == 'permit') {
+        receivePermit();
+    }*/ else if ("offer".equals(sdpMsg.getType() ) ) {
+            PeerConnectUtil.getInstance().receiveOffer(sdpMsg);
+        } else if ("answer".equals(sdpMsg.getType() ) ) {
+            PeerConnectUtil.getInstance().receiveAnswer(sdpMsg);
+        }else if ("deny".equals(sdpMsg.getType() ) ) {
+
+        }
+        else if ("hangup".equals(sdpMsg.getType() )) {
+
+        } else if ("candidate".equals(sdpMsg.getType())) {
+            PeerConnectUtil.getInstance().setIceCandidate(sdpMsg,PeerConnectUtil.getInstance().getPeerConnection());
+        }
+    }
 }

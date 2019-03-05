@@ -2,6 +2,7 @@ package com.example.webrtc_android.websocket;
 
 import android.util.Log;
 
+import com.alibaba.fastjson.JSONObject;
 import com.neovisionaries.ws.client.WebSocket;
 import com.neovisionaries.ws.client.WebSocketAdapter;
 import com.neovisionaries.ws.client.WebSocketException;
@@ -31,6 +32,15 @@ public class MyWebSocketListener extends WebSocketAdapter {
 
     @Override
     public void onTextMessage(WebSocket websocket, String text) throws Exception {
-        Log.i("MyWebSocketListener","收到消息："+text);
+
+        WebrtcMessage webrtcMessage=  JSONObject.parseObject(text,WebrtcMessage.class);
+        if (webrtcMessage.isSdpMsg()) {
+            //这个里面处理视频聊天
+            WebSocketUtil.getInstance().setToUserName( webrtcMessage.getFromUserName());
+            WebSocketUtil.getInstance().dealSdp(webrtcMessage.getSdpMessage());
+        } else {
+            //    这个里面是普通的聊天
+            Log.i("MyWebSocketListener","收到消息："+text);
+        }
     }
 }
