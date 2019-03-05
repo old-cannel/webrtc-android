@@ -27,58 +27,102 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="好友列表" />
+
         <LinearLayout
-            android:orientation="horizontal"
             android:layout_width="wrap_content"
-            android:layout_height="60dp">
+            android:layout_height="60dp"
+            android:orientation="horizontal">
 
             <TextView
 
-                android:gravity="center_vertical"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
+                android:gravity="center_vertical"
                 android:text="111" />
+
             <Button
                 android:id="@+id/bt_111"
-                android:onClick="send1"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
+                android:onClick="send1"
 
-                android:text="呼叫"/>
+                android:text="呼叫" />
         </LinearLayout>
 
         <LinearLayout
-            android:orientation="horizontal"
             android:layout_width="wrap_content"
+            android:layout_height="60dp"
 
-            android:layout_height="60dp">
+            android:orientation="horizontal">
+
             <TextView
 
-                android:gravity="center_vertical"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
+                android:gravity="center_vertical"
                 android:text="222" />
+
             <Button
                 android:id="@+id/bt_222"
-                android:onClick="send2"
                 android:layout_width="wrap_content"
                 android:layout_height="60dp"
-                android:text="呼叫"/>
+                android:onClick="send2"
+                android:text="呼叫" />
         </LinearLayout>
-        <LinearLayout
-            android:orientation="vertical"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
 
-            <org.webrtc.SurfaceViewRenderer
-                android:id="@+id/localView"
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:id="@+id/local"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-        </LinearLayout>
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="本地" />
+
+                <org.webrtc.SurfaceViewRenderer
+                    android:id="@+id/localView"
+                    android:layout_width="150dp"
+                    android:layout_height="150dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/remote"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/local"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="远端" />
+
+                <org.webrtc.SurfaceViewRenderer
+                    android:id="@+id/remoteView"
+                    android:layout_width="150dp"
+                    android:layout_height="150dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+
+            </LinearLayout>
+        </RelativeLayout>
     </LinearLayout>
 
 
