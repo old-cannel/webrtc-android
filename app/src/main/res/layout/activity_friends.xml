@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="20dp"
+        tools:context=".FriendsActivity">
+    <LinearLayout android:orientation="vertical" android:layout_width="match_parent"
+                  android:layout_height="match_parent">
+        <TextView android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:text="好友列表"
+                  android:id="@+id/tv_title"
+                  android:textSize="20sp"/>
+        <TextView android:id="@+id/tv_tip"
+                android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:textColor="#cccccc"
+                  android:text="暂无数据"/>
+
+        <ListView android:id="@+id/lv_friends" android:layout_width="match_parent" android:layout_height="match_parent">
+
+        </ListView>
+    </LinearLayout>
+
+
+</android.support.constraint.ConstraintLayout>
