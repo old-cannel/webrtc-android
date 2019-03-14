@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
 import webrtc.example.com.webrtc_android.service.MyFriendsService;
+import webrtc.example.com.webrtc_android.websocket.WebSocketUtil;
 
 import java.util.List;
 
@@ -36,9 +37,10 @@ public class FriendsActivity extends AppCompatActivity {
                             myFriendsAdapter = new myFriendsAdapter();
                             //设置适配器
                             listView.setAdapter(myFriendsAdapter);
-
                         }
                     });
+                    //打开websocket长连接
+                    WebSocketUtil.init(getApplicationContext());
 
                 }
 
