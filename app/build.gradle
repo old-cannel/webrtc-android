@@ -2,6 +2,10 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 28
+    compileOptions {
+        targetCompatibility 1.8
+        sourceCompatibility 1.8
+    }
     defaultConfig {
         applicationId "webrtc.example.com.webrtc_android"
         minSdkVersion 16
@@ -28,6 +32,10 @@ dependencies {
     implementation 'org.springframework.android:spring-android-rest-template:2.0.0.M3'
     implementation 'org.springframework.android:spring-android-core:2.0.0.M3'
     implementation 'com.google.code.gson:gson:2.8.5'
+
+    implementation 'com.neovisionaries:nv-websocket-client:2.2'
+    implementation 'org.webrtc:google-webrtc:1.0.+'
+
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
