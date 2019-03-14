@@ -83,7 +83,7 @@ public class FriendsActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     Log.d(TAG,"开始呼叫-->>"+username);
-
+                    WebSocketUtil.getInstance().sendMsg(username,"app-->h5");
                 }
             });
             return view;
