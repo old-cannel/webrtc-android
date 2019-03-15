@@ -76,6 +76,9 @@ public class PeerConnectUtil {
         this.eglBaseContext = eglBaseContext;
     }
 
+    /**
+     * 创建提供者
+     */
     public void offer() {
         SdpAdapter sdpAdapter = new SdpAdapter("local offer sdp") {
             @Override
@@ -87,10 +90,16 @@ public class PeerConnectUtil {
         PeerConnectUtil.getInstance().getPeerConnection().createOffer(sdpAdapter, new MediaConstraints());
     }
 
+    /**
+     * 接收到提供者信息
+     * @param sdpMessage
+     */
     public void receiveOffer(SdpMessage sdpMessage) {
+//      设置远端会话描述
         PeerConnectUtil.getInstance().getPeerConnection().setRemoteDescription(new SdpAdapter("localSetRemote"),
                 new SessionDescription(SessionDescription.Type.OFFER, sdpMessage.getSdp()));
 
+//        创建应答者
         SdpAdapter sdpAdapter = new SdpAdapter("localAnswerSdp") {
             @Override
             public void onCreateSuccess(SessionDescription sdp) {
@@ -102,17 +111,31 @@ public class PeerConnectUtil {
 
     }
 
+    /**
+     * 得到会话描述--》发送给对方
+     * @param desc
+     * @param sessionDescription
+     */
     private void gotDescription(String desc, SessionDescription sessionDescription) {
+//      会话描述放到本地
         PeerConnectUtil.getInstance().getPeerConnection().setLocalDescription(new SdpAdapter(desc), sessionDescription);
+
+//      会话描述发送给远端
         SdpMessage sdpMessage = new SdpMessage();
         sdpMessage.setType(sessionDescription.type.name().toLowerCase());
         sdpMessage.setSdp(sessionDescription.description);
         WebSocketUtil.getInstance().sendSdpMsg(WebSocketUtil.getInstance().getToUserName(), JsonUtil.toJson(sdpMessage));
     }
 
+    /**
+     * 收到应答者处理
+     * @param sdpMessage
+     */
     public void receiveAnswer(SdpMessage sdpMessage) {
+//      设置远端会话描述
         PeerConnectUtil.getInstance().getPeerConnection().setRemoteDescription(new SdpAdapter("localSetRemote"),
                 new SessionDescription(SessionDescription.Type.ANSWER, sdpMessage.getSdp()));
+
         String connectedStats = PeerConnection.PeerConnectionState.CONNECTED.name().toLowerCase();
         //没有完成链接就重新发起链接
         if (!connectedStats.equals(PeerConnectUtil.getInstance().getPeerConnection().connectionState().name().toLowerCase())) {
@@ -127,5 +150,46 @@ public class PeerConnectUtil {
                     sdpMsg.getSdpMid(), Integer.parseInt(sdpMsg.getSdpMLineIndex()), sdpMsg.getCandidate()
             ));
         }
+    }
+
+    /**
+     * 拒绝
+     * @param b
+     */
+    public void deny(boolean b){
+        //        关闭连接
+        if(peerConnection!=null){
+            peerConnection.close();
+            peerConnection=null;
+        }
+
+        //通知对方拒绝通话
+        if(b){
+            WebSocketUtil.getInstance().applySdp(WebSocketUtil.getInstance().getToUserName(),"deny");
+        }
+    }
+
+    /**
+     * 挂机
+     * @param b
+     */
+    public void hangup(boolean b) {
+//        通知对方挂机
+        if(b){
+            WebSocketUtil.getInstance().applySdp(WebSocketUtil.getInstance().getToUserName(),"hangup");
+        }
+//        关闭连接
+        if(peerConnection!=null){
+            peerConnection.close();
+            peerConnection=null;
+        }
+
+    }
+
+    /**
+     * 接收到呼叫
+     */
+    public void receiveCall() {
+        // TODO: 2019/3/15 显示同意、拒绝按钮
     }
 }

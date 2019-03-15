@@ -5,7 +5,10 @@ import android.util.Log;
 import com.neovisionaries.ws.client.WebSocket;
 import com.neovisionaries.ws.client.WebSocketAdapter;
 import com.neovisionaries.ws.client.WebSocketFactory;
+import org.springframework.util.StringUtils;
+import webrtc.example.com.webrtc_android.ssl.MySSLConnectionSocketFactory;
 import webrtc.example.com.webrtc_android.utils.JwtUtil;
+import webrtc.example.com.webrtc_android.utils.RestTemplateUtil;
 import webrtc.example.com.webrtc_android.webrtc.PeerConnectUtil;
 
 import java.io.IOException;
@@ -18,7 +21,7 @@ public class WebSocketUtil {
 
     }
 
-    private static String URL = "ws://10.110.1.11:2019/websocket/chat/websocket";
+    private static String URL = "wss://" + RestTemplateUtil.HOST + "/chat/websocket";
     private static WebSocketUtil webSocketUtil;
     private WebSocket webSocket;
     private String toUserName;
@@ -40,7 +43,6 @@ public class WebSocketUtil {
     }
 
     /**
-     *
      * @return
      */
     public static WebSocketUtil getInstance() {
@@ -52,16 +54,21 @@ public class WebSocketUtil {
 
     /**
      * 初始化
+     *
      * @param context
      */
-    public static void init(Context context){
-        getInstance().setWebSocket(webSocketUtil.connect(context,URL));
+    public static void init(Context context) {
+        getInstance().setWebSocket(webSocketUtil.connect(context, URL));
     }
 
-    private WebSocket connect(Context context,String url) {
+    private WebSocket connect(Context context, String url) {
         try {
 
-            return webSocket = new WebSocketFactory().createSocket(url, 30) //ws地址，和设置超时时间
+            WebSocketFactory websocketFactory = new WebSocketFactory();
+            if (MySSLConnectionSocketFactory.getInstance().getTrustrCertificates() != null) {
+                websocketFactory.setSSLSocketFactory(MySSLConnectionSocketFactory.getInstance().getSslSocketFactory());
+            }
+            return websocketFactory.createSocket(url, 30) //ws地址，和设置超时时间
                     .setFrameQueueSize(5)//设置帧队列最大值为5
                     .setMissingCloseFrameAllowed(false)//设置不允许服务端关闭连接却未发送关闭帧
                     .addListener(myWsListener())//添加回调监听
@@ -77,11 +84,11 @@ public class WebSocketUtil {
         getWebSocket().sendText("{'username':'" + username + "','message': '" + msg + "'}");
     }
 
-    public void sendSdpMsg( String username, String sdpMsg) {
+    public void sendSdpMsg(String username, String sdpMsg) {
         getWebSocket().sendText("{\"username\":\"" + username + "\",\"sdpMsg\":true,\"sdpMessage\":" + sdpMsg + "}");
     }
 
-    public void applySdp( String username, String type) {
+    public void applySdp(String username, String type) {
         getWebSocket().sendText("{'username':'" + username + "','sdpMsg':true,'sdpMessage': {'type':'" + type + "'}}");
     }
 
@@ -95,23 +102,24 @@ public class WebSocketUtil {
 
 
     public void dealSdp(SdpMessage sdpMsg) {
+
         //这个里面处理视频聊天
 
         if ("call".equals(sdpMsg.getType())) {
+            PeerConnectUtil.getInstance().receiveCall();
 
-        } /*else if (sdpMsg.type == 'permit') {
-        receivePermit();
-    }*/ else if ("offer".equals(sdpMsg.getType() ) ) {
+        } /*else if ("permit".equals(sdpMsg.getType())) {
+
+    } */ else if ("offer".equals(sdpMsg.getType())) {
             PeerConnectUtil.getInstance().receiveOffer(sdpMsg);
-        } else if ("answer".equals(sdpMsg.getType() ) ) {
+        } else if ("answer".equals(sdpMsg.getType())) {
             PeerConnectUtil.getInstance().receiveAnswer(sdpMsg);
-        }else if ("deny".equals(sdpMsg.getType() ) ) {
-
-        }
-        else if ("hangup".equals(sdpMsg.getType() )) {
-
-        } else if ("candidate".equals(sdpMsg.getType())) {
-            PeerConnectUtil.getInstance().setIceCandidate(sdpMsg,PeerConnectUtil.getInstance().getPeerConnection());
+        } else if ("deny".equals(sdpMsg.getType())) {
+            PeerConnectUtil.getInstance().deny(false);
+        } else if ("hangup".equals(sdpMsg.getType())) {
+            PeerConnectUtil.getInstance().hangup(false);
+        } else if ("candidate".equals(sdpMsg.getType()) || StringUtils.hasLength(sdpMsg.getCandidate())) {
+            PeerConnectUtil.getInstance().setIceCandidate(sdpMsg, PeerConnectUtil.getInstance().getPeerConnection());
         }
     }
 }

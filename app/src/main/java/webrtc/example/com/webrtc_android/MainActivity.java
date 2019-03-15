@@ -1,12 +1,9 @@
 package webrtc.example.com.webrtc_android;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.annotation.UiThread;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -14,6 +11,7 @@ import android.widget.Toast;
 import webrtc.example.com.webrtc_android.response.ResponseEnum;
 import webrtc.example.com.webrtc_android.response.ResponseVo;
 import webrtc.example.com.webrtc_android.service.LoginService;
+import webrtc.example.com.webrtc_android.ssl.MySSLConnectionSocketFactory;
 import webrtc.example.com.webrtc_android.utils.JwtUtil;
 
 public class MainActivity extends AppCompatActivity {
@@ -35,10 +33,14 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View v) {
+
                 Toast.makeText(getApplicationContext(),"登录中...",Toast.LENGTH_SHORT).show();
                 AsyncTask.execute(new Runnable() {
                     @Override
                     public void run() {
+                        //初始化ssl工厂，加载公钥
+                        MySSLConnectionSocketFactory.init(getApplicationContext());
+
                         ResponseVo responseVo=loginService.login(et_username.getText().toString().trim(),et_password.getText().toString().trim());
                         final String result= (String) responseVo.getResult();
                         if(responseVo.getCode()== ResponseEnum.SUCCESS.getCode()){
