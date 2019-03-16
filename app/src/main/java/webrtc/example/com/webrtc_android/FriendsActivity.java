@@ -84,8 +84,8 @@ public class FriendsActivity extends AppCompatActivity {
         });
 
         // create AudioSource
-//        AudioSource audioSource = peerConnectionFactory.createAudioSource(new MediaConstraints());
-//        AudioTrack audioTrack = peerConnectionFactory.createAudioTrack("101", audioSource);
+        AudioSource audioSource = PeerConnectUtil.getInstance().getPeerConnectionFactory().createAudioSource(new MediaConstraints());
+        AudioTrack audioTrack = PeerConnectUtil.getInstance().getPeerConnectionFactory().createAudioTrack("101", audioSource);
 
 
         // create videoSource
@@ -114,6 +114,7 @@ public class FriendsActivity extends AppCompatActivity {
 
         mediaStream = peerConnectUtil.getPeerConnectionFactory().createLocalMediaStream("mediaStream");
         mediaStream.addTrack(videoTrack);
+        mediaStream.addTrack(audioTrack);
 
     }
 

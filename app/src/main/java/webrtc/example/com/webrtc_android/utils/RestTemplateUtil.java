@@ -16,7 +16,7 @@ import webrtc.example.com.webrtc_android.ssl.MySSLConnectionSocketFactory;
  */
 public class RestTemplateUtil {
     private static RestTemplate restTemplate;
-    public final static String HOST = "10.110.1.11:2019/websocket";
+    public final static String HOST = "192.168.3.25:2019/websocket";
     private final static String API = "https://" + HOST;
     public static final String LOGIN = "/loginjwt";
     public static final String MY_FRIENDS = "/myfriends";
