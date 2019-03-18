@@ -29,44 +29,32 @@ public class MainActivity extends AppCompatActivity {
         et_password = findViewById(R.id.et_password);
         bt_login = findViewById(R.id.bt_login);
 
-        bt_login.setOnClickListener(new View.OnClickListener() {
+        bt_login.setOnClickListener(v -> {
 
-            @Override
-            public void onClick(View v) {
+            Toast.makeText(getApplicationContext(),"登录中...",Toast.LENGTH_SHORT).show();
+            AsyncTask.execute(new Runnable() {
+                @Override
+                public void run() {
+                    //初始化ssl工厂，加载公钥
+                    MySSLConnectionSocketFactory.init(getApplicationContext());
 
-                Toast.makeText(getApplicationContext(),"登录中...",Toast.LENGTH_SHORT).show();
-                AsyncTask.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        //初始化ssl工厂，加载公钥
-                        MySSLConnectionSocketFactory.init(getApplicationContext());
-
-                        ResponseVo responseVo=loginService.login(et_username.getText().toString().trim(),et_password.getText().toString().trim());
-                        final String result= (String) responseVo.getResult();
-                        if(responseVo.getCode()== ResponseEnum.SUCCESS.getCode()){
-                            JwtUtil.set(getBaseContext(),result);
-                            //跳转到聊天室
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    Toast.makeText(getApplicationContext(),"登录成功",Toast.LENGTH_SHORT).show();
-                                    Intent intent = new Intent(getApplicationContext(), FriendsActivity.class);
-                                    startActivity(intent);
-                                }
-                            });
-                        }else{
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    Toast.makeText(getApplicationContext(),result,Toast.LENGTH_LONG).show();
-                                }
-                            });
-                        }
+                    ResponseVo responseVo=loginService.login(et_username.getText().toString().trim(),et_password.getText().toString().trim());
+                    final String result= (String) responseVo.getResult();
+                    if(responseVo.getCode()== ResponseEnum.SUCCESS.getCode()){
+                        JwtUtil.set(getBaseContext(),result);
+                        //跳转到聊天室
+                        runOnUiThread(() -> {
+                            Toast.makeText(getApplicationContext(),"登录成功",Toast.LENGTH_SHORT).show();
+                            Intent intent = new Intent(getApplicationContext(), FriendsActivity.class);
+                            startActivity(intent);
+                        });
+                    }else{
+                        runOnUiThread(() -> Toast.makeText(getApplicationContext(),result,Toast.LENGTH_LONG).show());
                     }
-                });
+                }
+            });
 
 
-            }
         });
     }
 

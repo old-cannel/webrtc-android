@@ -44,12 +44,7 @@ public class FriendsActivity extends AppCompatActivity {
         btDeny = findViewById(R.id.bt_deny);
         btHangup = findViewById(R.id.bt_hangup);
 //用户点击同意按钮
-        btPermit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                permit();
-            }
-        });
+        btPermit.setOnClickListener(v -> permit());
 //        用户点击拒绝按钮
         btDeny.setOnClickListener(v -> deny(true));
 //        用户点击挂机按钮
