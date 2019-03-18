@@ -12,11 +12,11 @@ import webrtc.example.com.webrtc_android.ssl.MySSLConnectionSocketFactory;
 /**
  * @Auther: liuqi
  * @Date: 2019/3/13 16:18
- * @Description: 注：工具类第一次调用前需要初始化init
+ * @Description: 调用接口服务工具类
  */
 public class RestTemplateUtil {
     private static RestTemplate restTemplate;
-    public final static String HOST = "192.168.3.25:2019/websocket";
+    public final static String HOST = "192.168.31.134:2019/websocket";
     private final static String API = "https://" + HOST;
     public static final String LOGIN = "/loginjwt";
     public static final String MY_FRIENDS = "/myfriends";

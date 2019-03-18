@@ -1,6 +1,7 @@
 package webrtc.example.com.webrtc_android.webrtc;
 
 
+import android.content.Context;
 import org.webrtc.*;
 import webrtc.example.com.webrtc_android.utils.JsonUtil;
 import webrtc.example.com.webrtc_android.websocket.SdpMessage;
@@ -11,6 +12,7 @@ import java.util.List;
 
 /**
  * webrtc 客户端
+ * 工具类调用前需要调用init进行初始化
  */
 public class PeerConnectUtil {
     private static PeerConnectUtil peerConnectUtil;
@@ -19,6 +21,14 @@ public class PeerConnectUtil {
     private EglBase.Context eglBaseContext;
 
     private static List<PeerConnection.IceServer> iceServers;
+
+    public static void init(Context context){
+        //        初始化连接对象
+        PeerConnectionFactory.initialize(PeerConnectionFactory.InitializationOptions
+                .builder(context)
+                .createInitializationOptions());
+        getInstance();
+    }
 
     public static PeerConnectUtil getInstance() {
         if (peerConnectUtil == null) {
@@ -48,8 +58,7 @@ public class PeerConnectUtil {
      * @param observer
      */
     public void createPeerConnect(PeerConnection.Observer observer) {
-        List<PeerConnection.IceServer> iceServers = new ArrayList<>();
-        getInstance().setPeerConnection(getInstance().getPeerConnectionFactory().createPeerConnection(iceServers, observer));
+       getInstance().setPeerConnection(getInstance().getPeerConnectionFactory().createPeerConnection(iceServers, observer));
     }
 
     public PeerConnectionFactory getPeerConnectionFactory() {
@@ -186,10 +195,4 @@ public class PeerConnectUtil {
 
     }
 
-    /**
-     * 接收到呼叫
-     */
-    public void receiveCall() {
-        // TODO: 2019/3/15 显示同意、拒绝按钮
-    }
 }

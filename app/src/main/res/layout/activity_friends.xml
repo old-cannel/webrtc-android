@@ -73,14 +73,17 @@
                 <Button android:id="@+id/bt_permit" android:text="同意"
                         android:layout_width="0dp"
                         android:layout_weight="1"
+                        android:visibility="invisible"
                         android:layout_height="wrap_content"/>
                 <Button android:id="@+id/bt_deny" android:text="拒绝"
                         android:layout_width="0dp"
                         android:layout_weight="1"
+                        android:visibility="invisible"
                         android:layout_height="wrap_content"/>
                 <Button android:id="@+id/bt_hangup" android:text="挂机"
                         android:layout_width="0dp"
                         android:layout_weight="1"
+                        android:visibility="invisible"
                         android:layout_height="wrap_content"/>
             </LinearLayout>
         </LinearLayout>

@@ -10,6 +10,7 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import org.springframework.util.StringUtils;
 import org.webrtc.*;
 import webrtc.example.com.webrtc_android.service.MyFriendsService;
 import webrtc.example.com.webrtc_android.utils.JsonUtil;
@@ -25,6 +26,7 @@ public class FriendsActivity extends AppCompatActivity {
     private static MyFriendsService myFriendsService = new MyFriendsService();
     List<String> friendList;
     myFriendsAdapter myFriendsAdapter;
+    boolean isCall=false;
 
     SurfaceViewRenderer localView;
     SurfaceViewRenderer remoteView;
@@ -50,13 +52,9 @@ public class FriendsActivity extends AppCompatActivity {
 //        用户点击挂机按钮
         btHangup.setOnClickListener(v -> hangup(true));
 
-//        初始化连接对象
-        PeerConnectionFactory.initialize(PeerConnectionFactory.InitializationOptions
-                .builder(this)
-                .createInitializationOptions());
+        //初始化webrtc链接对象
+        PeerConnectUtil.init(getApplicationContext());
 
-        //单例实例化peerConnectFactory
-        PeerConnectUtil peerConnectUtil = PeerConnectUtil.getInstance();
 
 //好友列表
         final ListView listView = findViewById(R.id.lv_friends);
@@ -71,9 +69,8 @@ public class FriendsActivity extends AppCompatActivity {
                     //设置适配器
                     listView.setAdapter(myFriendsAdapter);
                 });
-                //打开websocket长连接
-                WebSocketUtil.init(getApplicationContext());
-
+                //websocket 连接服务器
+                initWebSocket();
             }
 
         });
@@ -84,19 +81,19 @@ public class FriendsActivity extends AppCompatActivity {
 
 
         // create videoSource
-        SurfaceTextureHelper surfaceTextureHelper = SurfaceTextureHelper.create("CaptureThread", peerConnectUtil.getEglBaseContext());
+        SurfaceTextureHelper surfaceTextureHelper = SurfaceTextureHelper.create("CaptureThread", PeerConnectUtil.getInstance().getEglBaseContext());
         // create VideoCapturer
         VideoCapturer videoCapturer = createCameraCapturer(true);
-        VideoSource videoSource = peerConnectUtil.getPeerConnectionFactory().createVideoSource(videoCapturer.isScreencast());
+        VideoSource videoSource = PeerConnectUtil.getInstance().getPeerConnectionFactory().createVideoSource(videoCapturer.isScreencast());
         videoCapturer.initialize(surfaceTextureHelper, getApplicationContext(), videoSource.getCapturerObserver());
         videoCapturer.startCapture(480, 640, 30);
 
         // render to localView
         localView = findViewById(R.id.localView);
         localView.setMirror(true);
-        localView.init(peerConnectUtil.getEglBaseContext(), null);
+        localView.init(PeerConnectUtil.getInstance().getEglBaseContext(), null);
         // create VideoTrack
-        VideoTrack videoTrack = peerConnectUtil.getPeerConnectionFactory().createVideoTrack("100", videoSource);
+        VideoTrack videoTrack = PeerConnectUtil.getInstance().getPeerConnectionFactory().createVideoTrack("100", videoSource);
         // display in localView
         videoTrack.addSink(localView);
 
@@ -104,10 +101,10 @@ public class FriendsActivity extends AppCompatActivity {
         // render to remoteView
         remoteView = findViewById(R.id.remoteView);
         remoteView.setMirror(true);
-        remoteView.init(peerConnectUtil.getEglBaseContext(), null);
+        remoteView.init(PeerConnectUtil.getInstance().getEglBaseContext(), null);
 
 
-        mediaStream = peerConnectUtil.getPeerConnectionFactory().createLocalMediaStream("mediaStream");
+        mediaStream = PeerConnectUtil.getInstance().getPeerConnectionFactory().createLocalMediaStream("mediaStream");
         mediaStream.addTrack(videoTrack);
         mediaStream.addTrack(audioTrack);
 
@@ -144,9 +141,17 @@ public class FriendsActivity extends AppCompatActivity {
             TextView it_userNmae = view.findViewById(R.id.item_tv_username);
             it_userNmae.setText(username);
             Button call = view.findViewById(R.id.item_bt_call);
+            if(isCall){
+                call.setVisibility(View.INVISIBLE);
+            }else{
+                call.setVisibility(View.VISIBLE);
+            }
             call.setOnClickListener(v -> {
                 Log.d(TAG, "开始呼叫-->>" + username);
-// TODO: 2019/3/15 隐藏呼叫按钮 显示挂机按钮
+                //隐藏呼叫，显示挂机
+                isCall=true;
+                notifyDataSetChanged();
+                btHangup.setVisibility(View.VISIBLE);
                 call(username);
             });
             return view;
@@ -197,7 +202,11 @@ public class FriendsActivity extends AppCompatActivity {
 
 
     public void permit() {
-// TODO: 2019/3/15 隐藏拒绝、同意按钮 显示挂机按钮
+//  隐藏拒绝、同意按钮 显示挂机按钮
+        btDeny.setVisibility(View.INVISIBLE);
+        btPermit.setVisibility(View.INVISIBLE);
+
+        btHangup.setVisibility(View.VISIBLE);
 
         Log.d("MainActivity", "同意");
         PeerConnection.Observer observer = new PeerConnectionAdapter("call") {
@@ -250,8 +259,15 @@ public class FriendsActivity extends AppCompatActivity {
      * @param b
      */
     public void deny(boolean b) {
+
+        //  隐藏同意、拒绝、挂机按钮，呼叫按钮显示
+        btPermit.setVisibility(View.INVISIBLE);
+        btDeny.setVisibility(View.INVISIBLE);
+        btHangup.setVisibility(View.INVISIBLE);
+        isCall=false;
+        myFriendsAdapter.notifyDataSetChanged();
+
         PeerConnectUtil.getInstance().deny(b);
-        // TODO: 2019/3/15 隐藏同意、拒绝、挂机按钮，呼叫按钮显示
     }
 
     /**
@@ -260,9 +276,61 @@ public class FriendsActivity extends AppCompatActivity {
      * @param b
      */
     public void hangup(boolean b) {
-        PeerConnectUtil.getInstance().hangup(b);
-        // TODO: 2019/3/15  按钮挂机隐藏，呼叫显示
 
+        // 按钮挂机隐藏，呼叫显示
+        btHangup.setVisibility(View.INVISIBLE);
+        isCall=false;
+        myFriendsAdapter.notifyDataSetChanged();
+
+
+        PeerConnectUtil.getInstance().hangup(b);
     }
 
+
+    private void initWebSocket() {
+        //打开websocket长连接
+        WebSocketUtil.init(getApplicationContext(), sdpMsg -> {
+            if ("call".equals(sdpMsg.getType())) {
+                runOnUiThread(() -> {
+                    //  显示同意、拒绝按钮
+                    btPermit.setVisibility(View.VISIBLE);
+                    btDeny.setVisibility(View.VISIBLE);
+                    isCall=true;
+                    myFriendsAdapter.notifyDataSetChanged();
+                });
+
+            } else if ("offer".equals(sdpMsg.getType())) {
+                PeerConnectUtil.getInstance().receiveOffer(sdpMsg);
+            } else if ("answer".equals(sdpMsg.getType())) {
+                PeerConnectUtil.getInstance().receiveAnswer(sdpMsg);
+            } else if ("deny".equals(sdpMsg.getType())) {
+                runOnUiThread(()->{
+                    isCall=false;
+                    myFriendsAdapter.notifyDataSetChanged();
+
+                    btPermit.setVisibility(View.INVISIBLE);
+                    btDeny.setVisibility(View.INVISIBLE);
+                    btHangup.setVisibility(View.INVISIBLE);
+
+                });
+
+                PeerConnectUtil.getInstance().deny(false);
+
+            } else if ("hangup".equals(sdpMsg.getType())) {
+                runOnUiThread(() -> {
+                    //  隐藏同意、拒绝、挂机按钮，显示呼叫按钮
+                    btPermit.setVisibility(View.INVISIBLE);
+                    btDeny.setVisibility(View.INVISIBLE);
+                    btHangup.setVisibility(View.INVISIBLE);
+                    isCall=false;
+                    myFriendsAdapter.notifyDataSetChanged();
+                });
+
+                PeerConnectUtil.getInstance().hangup(false);
+
+            } else if ("candidate".equals(sdpMsg.getType()) || StringUtils.hasLength(sdpMsg.getCandidate())) {
+                PeerConnectUtil.getInstance().setIceCandidate(sdpMsg, PeerConnectUtil.getInstance().getPeerConnection());
+            }
+        });
+    }
 }

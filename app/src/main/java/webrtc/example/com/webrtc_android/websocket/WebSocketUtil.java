@@ -5,16 +5,15 @@ import android.util.Log;
 import com.neovisionaries.ws.client.WebSocket;
 import com.neovisionaries.ws.client.WebSocketAdapter;
 import com.neovisionaries.ws.client.WebSocketFactory;
-import org.springframework.util.StringUtils;
 import webrtc.example.com.webrtc_android.ssl.MySSLConnectionSocketFactory;
 import webrtc.example.com.webrtc_android.utils.JwtUtil;
 import webrtc.example.com.webrtc_android.utils.RestTemplateUtil;
-import webrtc.example.com.webrtc_android.webrtc.PeerConnectUtil;
 
 import java.io.IOException;
 
 /**
  * websockte 工具类
+ * 工具类使用前需要调用init初始化
  */
 public class WebSocketUtil {
     private WebSocketUtil() {
@@ -26,21 +25,16 @@ public class WebSocketUtil {
     private WebSocket webSocket;
     private String toUserName;
 
-    public String getToUserName() {
-        return toUserName;
+    /**
+     * 初始化
+     *
+     * @param context
+     */
+    public static void init(Context context, MessageHandle messageHandle) {
+        getInstance().setWebSocket(webSocketUtil.connect(context, URL, messageHandle));
     }
 
-    public void setToUserName(String toUserName) {
-        this.toUserName = toUserName;
-    }
 
-    public WebSocket getWebSocket() {
-        return webSocket;
-    }
-
-    public void setWebSocket(WebSocket webSocket) {
-        this.webSocket = webSocket;
-    }
 
     /**
      * @return
@@ -52,16 +46,9 @@ public class WebSocketUtil {
         return webSocketUtil;
     }
 
-    /**
-     * 初始化
-     *
-     * @param context
-     */
-    public static void init(Context context) {
-        getInstance().setWebSocket(webSocketUtil.connect(context, URL));
-    }
 
-    private WebSocket connect(Context context, String url) {
+
+    private WebSocket connect(Context context, String url, MessageHandle messageHandle) {
         try {
 
             WebSocketFactory websocketFactory = new WebSocketFactory();
@@ -71,7 +58,7 @@ public class WebSocketUtil {
             return websocketFactory.createSocket(url, 30) //ws地址，和设置超时时间
                     .setFrameQueueSize(5)//设置帧队列最大值为5
                     .setMissingCloseFrameAllowed(false)//设置不允许服务端关闭连接却未发送关闭帧
-                    .addListener(myWsListener())//添加回调监听
+                    .addListener(myWsListener(messageHandle))//添加回调监听
                     .addProtocol(JwtUtil.get(context))
                     .connectAsynchronously();//异步连接
         } catch (IOException e) {
@@ -96,30 +83,23 @@ public class WebSocketUtil {
         getWebSocket().disconnect();
     }
 
-    public WebSocketAdapter myWsListener() {
-        return new MyWebSocketListener();
+    public WebSocketAdapter myWsListener(MessageHandle messageHandle) {
+        return new MyWebSocketListener(messageHandle);
     }
 
+    public String getToUserName() {
+        return toUserName;
+    }
 
-    public void dealSdp(SdpMessage sdpMsg) {
+    public void setToUserName(String toUserName) {
+        this.toUserName = toUserName;
+    }
 
-        //这个里面处理视频聊天
+    public WebSocket getWebSocket() {
+        return webSocket;
+    }
 
-        if ("call".equals(sdpMsg.getType())) {
-            PeerConnectUtil.getInstance().receiveCall();
-
-        } /*else if ("permit".equals(sdpMsg.getType())) {
-
-    } */ else if ("offer".equals(sdpMsg.getType())) {
-            PeerConnectUtil.getInstance().receiveOffer(sdpMsg);
-        } else if ("answer".equals(sdpMsg.getType())) {
-            PeerConnectUtil.getInstance().receiveAnswer(sdpMsg);
-        } else if ("deny".equals(sdpMsg.getType())) {
-            PeerConnectUtil.getInstance().deny(false);
-        } else if ("hangup".equals(sdpMsg.getType())) {
-            PeerConnectUtil.getInstance().hangup(false);
-        } else if ("candidate".equals(sdpMsg.getType()) || StringUtils.hasLength(sdpMsg.getCandidate())) {
-            PeerConnectUtil.getInstance().setIceCandidate(sdpMsg, PeerConnectUtil.getInstance().getPeerConnection());
-        }
+    public void setWebSocket(WebSocket webSocket) {
+        this.webSocket = webSocket;
     }
 }
