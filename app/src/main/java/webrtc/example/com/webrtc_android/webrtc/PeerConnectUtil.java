@@ -1,25 +1,18 @@
-package com.example.webrtc_android.webrtc;
+package webrtc.example.com.webrtc_android.webrtc;
 
-import android.util.Log;
 
-import com.alibaba.fastjson.JSONObject;
-import com.example.webrtc_android.websocket.SdpMessage;
-import com.example.webrtc_android.websocket.WebSocketUtil;
-
-import org.webrtc.DefaultVideoDecoderFactory;
-import org.webrtc.DefaultVideoEncoderFactory;
-import org.webrtc.EglBase;
-import org.webrtc.IceCandidate;
-import org.webrtc.MediaConstraints;
-import org.webrtc.PeerConnection;
-import org.webrtc.PeerConnectionFactory;
-import org.webrtc.SessionDescription;
+import android.content.Context;
+import org.webrtc.*;
+import webrtc.example.com.webrtc_android.utils.JsonUtil;
+import webrtc.example.com.webrtc_android.websocket.SdpMessage;
+import webrtc.example.com.webrtc_android.websocket.WebSocketUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * webrtc 客户端
+ * 工具类调用前需要调用init进行初始化
  */
 public class PeerConnectUtil {
     private static PeerConnectUtil peerConnectUtil;
@@ -28,6 +21,14 @@ public class PeerConnectUtil {
     private EglBase.Context eglBaseContext;
 
     private static List<PeerConnection.IceServer> iceServers;
+
+    public static void init(Context context){
+        //        初始化连接对象
+        PeerConnectionFactory.initialize(PeerConnectionFactory.InitializationOptions
+                .builder(context)
+                .createInitializationOptions());
+        getInstance();
+    }
 
     public static PeerConnectUtil getInstance() {
         if (peerConnectUtil == null) {
@@ -57,8 +58,7 @@ public class PeerConnectUtil {
      * @param observer
      */
     public void createPeerConnect(PeerConnection.Observer observer) {
-        List<PeerConnection.IceServer> iceServers = new ArrayList<>();
-        getInstance().setPeerConnection(getInstance().getPeerConnectionFactory().createPeerConnection(iceServers, observer));
+       getInstance().setPeerConnection(getInstance().getPeerConnectionFactory().createPeerConnection(iceServers, observer));
     }
 
     public PeerConnectionFactory getPeerConnectionFactory() {
@@ -85,6 +85,9 @@ public class PeerConnectUtil {
         this.eglBaseContext = eglBaseContext;
     }
 
+    /**
+     * 创建提供者
+     */
     public void offer() {
         SdpAdapter sdpAdapter = new SdpAdapter("local offer sdp") {
             @Override
@@ -96,10 +99,16 @@ public class PeerConnectUtil {
         PeerConnectUtil.getInstance().getPeerConnection().createOffer(sdpAdapter, new MediaConstraints());
     }
 
+    /**
+     * 接收到提供者信息
+     * @param sdpMessage
+     */
     public void receiveOffer(SdpMessage sdpMessage) {
+//      设置远端会话描述
         PeerConnectUtil.getInstance().getPeerConnection().setRemoteDescription(new SdpAdapter("localSetRemote"),
                 new SessionDescription(SessionDescription.Type.OFFER, sdpMessage.getSdp()));
 
+//        创建应答者
         SdpAdapter sdpAdapter = new SdpAdapter("localAnswerSdp") {
             @Override
             public void onCreateSuccess(SessionDescription sdp) {
@@ -111,20 +120,34 @@ public class PeerConnectUtil {
 
     }
 
+    /**
+     * 得到会话描述--》发送给对方
+     * @param desc
+     * @param sessionDescription
+     */
     private void gotDescription(String desc, SessionDescription sessionDescription) {
+//      会话描述放到本地
         PeerConnectUtil.getInstance().getPeerConnection().setLocalDescription(new SdpAdapter(desc), sessionDescription);
+
+//      会话描述发送给远端
         SdpMessage sdpMessage = new SdpMessage();
         sdpMessage.setType(sessionDescription.type.name().toLowerCase());
         sdpMessage.setSdp(sessionDescription.description);
-        WebSocketUtil.getInstance().sendSdpMsg(WebSocketUtil.getInstance().getToUserName(), JSONObject.toJSONString(sdpMessage));
+        WebSocketUtil.getInstance().sendSdpMsg(WebSocketUtil.getInstance().getToUserName(), JsonUtil.toJson(sdpMessage));
     }
 
+    /**
+     * 收到应答者处理
+     * @param sdpMessage
+     */
     public void receiveAnswer(SdpMessage sdpMessage) {
+//      设置远端会话描述
         PeerConnectUtil.getInstance().getPeerConnection().setRemoteDescription(new SdpAdapter("localSetRemote"),
                 new SessionDescription(SessionDescription.Type.ANSWER, sdpMessage.getSdp()));
-        String connectedStats=PeerConnectUtil.getInstance().getPeerConnection().connectionState().CONNECTED.name().toLowerCase();
+
+        String connectedStats = PeerConnection.PeerConnectionState.CONNECTED.name().toLowerCase();
         //没有完成链接就重新发起链接
-        if(!connectedStats.equals(PeerConnectUtil.getInstance().getPeerConnection().connectionState().name().toLowerCase())){
+        if (!connectedStats.equals(PeerConnectUtil.getInstance().getPeerConnection().connectionState().name().toLowerCase())) {
             offer();
         }
 
@@ -137,4 +160,39 @@ public class PeerConnectUtil {
             ));
         }
     }
+
+    /**
+     * 拒绝
+     * @param b
+     */
+    public void deny(boolean b){
+        //        关闭连接
+        if(peerConnection!=null){
+            peerConnection.close();
+            peerConnection=null;
+        }
+
+        //通知对方拒绝通话
+        if(b){
+            WebSocketUtil.getInstance().applySdp(WebSocketUtil.getInstance().getToUserName(),"deny");
+        }
+    }
+
+    /**
+     * 挂机
+     * @param b
+     */
+    public void hangup(boolean b) {
+//        通知对方挂机
+        if(b){
+            WebSocketUtil.getInstance().applySdp(WebSocketUtil.getInstance().getToUserName(),"hangup");
+        }
+//        关闭连接
+        if(peerConnection!=null){
+            peerConnection.close();
+            peerConnection=null;
+        }
+
+    }
+
 }

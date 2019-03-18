@@ -1,7 +1,6 @@
-package com.example.webrtc_android.webrtc;
+package webrtc.example.com.webrtc_android.webrtc;
 
 import android.util.Log;
-
 import org.webrtc.SdpObserver;
 import org.webrtc.SessionDescription;
 

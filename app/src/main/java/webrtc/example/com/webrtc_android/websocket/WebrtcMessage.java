@@ -1,4 +1,4 @@
-package com.example.webrtc_android.websocket;
+package webrtc.example.com.webrtc_android.websocket;
 
 import java.io.Serializable;
 

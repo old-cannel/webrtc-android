@@ -7,5 +7,4 @@ local.properties
 /captures
 .externalNativeBuild
 .Class
-/libs
-.pro
+/app/*.pro

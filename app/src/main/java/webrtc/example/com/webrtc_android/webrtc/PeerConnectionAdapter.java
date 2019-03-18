@@ -1,14 +1,7 @@
-package com.example.webrtc_android.webrtc;
+package webrtc.example.com.webrtc_android.webrtc;
 
 import android.util.Log;
-
-import com.example.webrtc_android.websocket.WebSocketUtil;
-
-import org.webrtc.DataChannel;
-import org.webrtc.IceCandidate;
-import org.webrtc.MediaStream;
-import org.webrtc.PeerConnection;
-import org.webrtc.RtpReceiver;
+import org.webrtc.*;
 
 /**
  * Created by chao on 2019/1/28.
